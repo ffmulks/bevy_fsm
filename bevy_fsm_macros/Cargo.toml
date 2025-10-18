@@ -1,0 +1,19 @@
+[package]
+name = "bevy_fsm_macros"
+version = "0.1.0"
+edition = "2021"
+license = "MIT OR Apache-2.0"
+description = "Procedural macros for bevy_fsm - Observer-driven FSM framework for Bevy"
+repository = "https://github.com/drmulks/bevy_fsm"
+authors = ["Dr. Florian Mulks <dr@mulks.ac>"]
+keywords = ["bevy", "fsm", "macros"]
+categories = ["game-development"]
+readme = "README.md"
+
+[lib]
+proc-macro = true
+
+[dependencies]
+syn = { version = "2.0", features = ["full"] }
+quote = "1.0"
+proc-macro2 = "1.0"

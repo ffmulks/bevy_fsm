@@ -1,0 +1,25 @@
+[package]
+name = "bevy_fsm"
+version = "0.1.0"
+edition = "2021"
+license = "MIT OR Apache-2.0"
+description = "Observer-driven finite state machine framework for Bevy ECS with variant-specific events and flexible validation"
+repository = "https://github.com/ffmulks/bevy_fsm"
+authors = ["Dr. Florian Mulks <dr@mulks.ac>"]
+keywords = ["bevy", "fsm", "state-machine", "ecs", "gamedev"]
+categories = ["game-development"]
+readme = "README.md"
+homepage = "https://github.com/ffmulks/bevy_fsm"
+documentation = "https://docs.rs/bevy_fsm"
+
+[dependencies]
+bevy = { version = "0.16", default-features = false }
+bevy_fsm_macros = { version = "=0.1.0", path = "bevy_fsm_macros" }
+bevy_enum_events = { git = "file:///C:/Users/fmulk/gamedev/rust/bevy_enum_events", branch = "main" }
+
+[workspace]
+members = ["bevy_fsm_macros"]
+
+# Don't include certain files in the published package
+[package.metadata]
+# bevy_fsm_macros is bundled automatically via path dependency
