@@ -150,10 +150,9 @@ use bevy::{
     platform::collections::{HashMap, HashSet},
     reflect::GetTypeRegistration,
 };
-// Re-export the derive macros from bevy_enum_event for convenience
+// Re-export the derive macross from bevy_enum_event for convenience
 // Note: FSMState and FSMTransition are both traits (below) and derive macros (from bevy_enum_event)
-// This is the standard Rust pattern, like Debug
-pub use bevy_enum_event::EnumEvent;
+pub use bevy_enum_event::{EnumEvent, FSMState, FSMTransition};
 use std::any::TypeId;
 
 /// Macro for registering FSM observers sorting them into the per-FSM hierarchy.
