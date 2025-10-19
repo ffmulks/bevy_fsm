@@ -25,7 +25,7 @@ Observer-driven finite state machine framework for Bevy ECS.
 ```rust
 use bevy::prelude::*;
 use bevy_fsm::{FSMState, FSMTransition, FSMPlugin, StateChangeRequest, Enter, Exit, Transition, fsm_observer};
-use bevy_enum_events::{EnumEvents, FSMStates};
+use bevy_enum_events::{EnumEvent, FSMState};
 
 fn plugin(app: &mut App) {
     // FSMPlugin automatically sets up the observer hierarchy on first use
@@ -40,7 +40,7 @@ fn plugin(app: &mut App) {
     fsm_observer!(app, LifeFSM, on_transition_dying_dead);
 }
 
-#[derive(Component, EnumEvents, FSMStates, Reflect, Clone, Copy, Debug, PartialEq, Eq, Hash)]
+#[derive(Component, EnumEvent, FSMState, Reflect, Clone, Copy, Debug, PartialEq, Eq, Hash)]
 #[reflect(Component)]
 enum LifeFSM {
     Alive,
@@ -108,12 +108,12 @@ impl FSMTransition for MyFSM {
 }
 ```
 
-### EnumEvents and FSMStates Derives
+### EnumEvent and FSMState Derives
 
 **bevy_fsm** uses two derive macros from `bevy_enum_events`:
 
-1. **`#[derive(EnumEvents)]`** - Generates variant-specific event types in a `modulename::Variant` hierarchy
-2. **`#[derive(FSMStates)]`** - Implements FSM-specific trigger methods for Enter/Exit/Transition events
+1. **`#[derive(EnumEvent)]`** - Generates variant-specific event types in a `modulename::Variant` hierarchy
+2. **`#[derive(FSMState)]`** - Implements FSM-specific trigger methods for Enter/Exit/Transition events
 
 Together they enable:
 - Type-safe variant-specific events
@@ -121,9 +121,9 @@ Together they enable:
 - Full N×N transition event support
 
 ```rust
-use bevy_enum_events::{EnumEvents, FSMStates};
+use bevy_enum_events::{EnumEvent, FSMState};
 
-#[derive(Component, EnumEvents, FSMStates, Clone, Copy, Debug, PartialEq, Eq, Hash)]
+#[derive(Component, EnumEvent, FSMState, Clone, Copy, Debug, PartialEq, Eq, Hash)]
 enum BlockFSM {
     Tile,    // Generates blockfsm::Tile event type
     Loose,   // Generates blockfsm::Loose event type
@@ -137,7 +137,7 @@ fn on_tile_enter(trigger: Trigger<Enter<blockfsm::Tile>>, ...) { }
 fn on_tile_exit(trigger: Trigger<Exit<blockfsm::Tile>>, ...) { }
 ```
 
-### FSMPlugin - Automatic Setup (Recommended)
+### FSMPlugin - Automatic Setup
 
 The easiest way to register an FSM is with `FSMPlugin`:
 
@@ -153,7 +153,7 @@ fn plugin(app: &mut App) {
 }
 ```
 
-### fsm_observer! Macro (Recommended)
+### fsm_observer! Macro
 
 Use the `fsm_observer!` macro to register variant-specific observers with automatic hierarchy organization:
 
@@ -473,7 +473,7 @@ bevy_fsm/
 └── README.md
 
 bevy_enum_events/        # Separate crate (dependency)
-├── src/lib.rs           # EnumEvents and FSMStates derive macros
+├── src/lib.rs           # EnumEvent and FSMState derive macros
 ├── Cargo.toml
 └── README.md
 ```

@@ -16,3 +16,6 @@ documentation = "https://docs.rs/bevy_fsm"
 bevy = { version = "0.16", default-features = false }
 bevy_enum_events = { path = "../bevy_enum_events", features = ["fsm"] }
 
+[dev-dependencies]
+bevy = { version = "0.16", default-features = false, features = ["bevy_state"] }
+
