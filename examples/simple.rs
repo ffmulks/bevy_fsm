@@ -1,13 +1,12 @@
-//! Fully connected FSM example with zero boilerplate.
+//! Minimal example showing the simplest possible FSM setup.
 //!
 //! This demonstrates:
 //! - Zero boilerplate FSM with default "allow all transitions" behavior
 //! - Just three derives: #[derive(EnumEvent, FSMTransition, FSMState)]
-//! - No manual FSMTransition implementation needed
+//! - No manual FSMTransition implementation needed!
 //! - Using fsm_observer! macro to register observers in the FSM hierarchy
-//! - ALL transitions are allowed (fully connected state graph)
 //!
-//! Run with: cargo run --example fully_connected
+//! Run with: cargo run --example simple
 
 use bevy::prelude::*;
 use bevy_enum_event::{EnumEvent, FSMState, FSMTransition};
@@ -41,55 +40,50 @@ enum GameState {
     GameOver,
 }
 
+// No manual impl needed - FSMTransition derive allows all transitions.
+
 /// Setup the game
 fn setup(mut commands: Commands) {
-    println!("=== Fully Connected FSM Example ===");
-    println!("This FSM allows ALL transitions (fully connected graph)");
+    println!("=== Simple FSM Example ===");
+    println!("This FSM allows ALL transitions by default");
     println!("Observers registered using fsm_observer! macro\n");
 
     commands.spawn((GameState::MainMenu, Name::new("Game")));
 }
 
-/// Cycle through states to demonstrate the fully connected FSM
+/// Cycle through states to demonstrate the FSM
 fn cycle_states(
     mut commands: Commands,
     query: Query<(Entity, &GameState, &Name)>,
-    mut frame: Local<u32>,
+    time: Res<Time>,
+    mut elapsed: Local<f32>,
+    mut last_transition: Local<u32>,
 ) {
-    *frame += 1;
+    *elapsed += time.delta_secs();
+    let current_step = (*elapsed * 2.0) as u32;
 
-    for (entity, &state, name) in query.iter() {
-        let next_state = match *frame {
-            1 => Some(GameState::Playing),
-            2 => Some(GameState::Paused),
-            3 => Some(GameState::Playing),
-            4 => Some(GameState::GameOver),
-            5 => {
-                // Demonstrate fully connected: can go directly from GameOver to any state!
-                println!("\nDemonstrating fully connected graph:");
-                println!("  GameOver -> MainMenu ✓ (would be blocked in a typical FSM)");
-                Some(GameState::MainMenu)
-            }
-            6 => {
-                println!("  MainMenu -> GameOver ✓ (skipping intermediate states)");
-                Some(GameState::GameOver)
-            }
-            7 => {
-                println!("  GameOver -> Playing ✓ (any transition is valid!)\n");
-                Some(GameState::Playing)
-            }
-            8 => {
-                println!("=== Example complete! ===");
-                std::process::exit(0);
-            }
-            _ => None,
-        };
+    // Only trigger transitions when we reach a new step
+    if current_step != *last_transition {
+        *last_transition = current_step;
 
-        if let Some(next) = next_state {
-            if *frame < 50 {
-                println!("{} transitioning: {:?} -> {:?}", name, state, next);
+        for (entity, &state, name) in query.iter() {
+            let next_state = match current_step {
+                2 => Some(GameState::Playing),
+                4 => Some(GameState::Paused),
+                6 => Some(GameState::Playing),
+                8 => Some(GameState::GameOver),
+                10 => Some(GameState::MainMenu), // Can go back to menu from game over!
+                12 => {
+                    println!("\n=== Example complete! ===");
+                    std::process::exit(0);
+                }
+                _ => None,
+            };
+
+            if let Some(next) = next_state {
+                println!("\n{} transitioning: {:?} -> {:?}", name, state, next);
+                commands.trigger_targets(StateChangeRequest { next }, entity);
             }
-            commands.trigger_targets(StateChangeRequest { next }, entity);
         }
     }
 }

@@ -25,7 +25,7 @@ Observer-driven finite state machine framework for Bevy ECS.
 ```rust
 use bevy::prelude::*;
 use bevy_fsm::{FSMState, FSMTransition, FSMPlugin, StateChangeRequest, Enter, Exit, Transition, fsm_observer};
-use bevy_enum_events::{EnumEvent, FSMState};
+use bevy_enum_event::{EnumEvent, FSMState};
 
 fn plugin(app: &mut App) {
     // FSMPlugin automatically sets up the observer hierarchy on first use
@@ -110,7 +110,7 @@ impl FSMTransition for MyFSM {
 
 ### EnumEvent and FSMState Derives
 
-**bevy_fsm** uses two derive macros from `bevy_enum_events`:
+**bevy_fsm** uses two derive macros from `bevy_enum_event`:
 
 1. **`#[derive(EnumEvent)]`** - Generates variant-specific event types in a `modulename::Variant` hierarchy
 2. **`#[derive(FSMState)]`** - Implements FSM-specific trigger methods for Enter/Exit/Transition events
@@ -121,7 +121,7 @@ Together they enable:
 - Full N×N transition event support
 
 ```rust
-use bevy_enum_events::{EnumEvent, FSMState};
+use bevy_enum_event::{EnumEvent, FSMState};
 
 #[derive(Component, EnumEvent, FSMState, Clone, Copy, Debug, PartialEq, Eq, Hash)]
 enum BlockFSM {
@@ -472,13 +472,13 @@ bevy_fsm/
 ├── Cargo.toml
 └── README.md
 
-bevy_enum_events/        # Separate crate (dependency)
+bevy_enum_event/        # Separate crate (dependency)
 ├── src/lib.rs           # EnumEvent and FSMState derive macros
 ├── Cargo.toml
 └── README.md
 ```
 
-**Note**: `bevy_fsm` depends on `bevy_enum_events` with the `fsm` feature enabled.
+**Note**: `bevy_fsm` depends on `bevy_enum_event` with the `fsm` feature enabled.
 
 ## License
 
