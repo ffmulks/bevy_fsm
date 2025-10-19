@@ -133,7 +133,6 @@ dependencies = [
 [[package]]
 name = "bevy_enum_events"
 version = "0.1.0"
-source = "git+file:///C:/Users/fmulk/gamedev/rust/bevy_enum_events?branch=main#114ddc9f03b150a65fc9a485d414f9dba816ada7"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -146,16 +145,6 @@ version = "0.1.0"
 dependencies = [
  "bevy",
  "bevy_enum_events",
- "bevy_fsm_macros",
-]
-
-[[package]]
-name = "bevy_fsm_macros"
-version = "0.1.0"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn",
 ]
 
 [[package]]

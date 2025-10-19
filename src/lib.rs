@@ -18,6 +18,7 @@
 //! ```rust
 //! use bevy::prelude::*;
 //! use bevy_fsm::{FSMState, FSMTransition, FSMPlugin, StateChangeRequest, Enter, Exit, Transition, fsm_observer};
+//! use bevy_enum_events::{EnumEvents, FSMStates};
 //!
 //! fn plugin(app: &mut App) {
 //!     // FSMPlugin automatically sets up the observer hierarchy on first use
@@ -32,13 +33,15 @@
 //!     fsm_observer!(app, LifeFSM, on_transition_dying_dead);
 //! }
 //!
-//! #[derive(Component, FSMState, Reflect, Clone, Copy, Debug, PartialEq, Eq, Hash)]
+//! #[derive(Component, EnumEvents, FSMStates, Reflect, Clone, Copy, Debug, PartialEq, Eq, Hash)]
 //! #[reflect(Component)]
 //! enum LifeFSM {
 //!     Alive,
 //!     Dying,
 //!     Dead,
 //! }
+//!
+//! impl FSMState for LifeFSM {}
 //!
 //! impl FSMTransition for LifeFSM {
 //!     // This is used as baseline filter to allow and forbid transitions
@@ -148,7 +151,8 @@ use bevy::{
     platform::collections::{HashMap, HashSet},
     reflect::GetTypeRegistration,
 };
-pub use bevy_fsm_macros::FSMState;
+// Re-export the derive macros from bevy_enum_events for convenience
+pub use bevy_enum_events::{EnumEvents, FSMStates};
 use std::any::TypeId;
 
 /// Macro for registering FSM observers sorting them into the per-FSM hierarchy.
@@ -162,8 +166,10 @@ use std::any::TypeId;
 /// ```no_run
 /// # use bevy::prelude::*;
 /// # use bevy_fsm::{FSMState, FSMTransition, fsm_observer, Enter};
-/// # #[derive(Component, FSMState, Reflect, Clone, Copy, Debug, PartialEq, Eq, Hash)]
+/// # use bevy_enum_events::{EnumEvents, FSMStates};
+/// # #[derive(Component, EnumEvents, FSMStates, Reflect, Clone, Copy, Debug, PartialEq, Eq, Hash)]
 /// # enum LifeFSM { Alive, Dying }
+/// # impl FSMState for LifeFSM {}
 /// # impl FSMTransition for LifeFSM {
 /// #     fn can_transition(_: Self, _: Self) -> bool { true }
 /// # }
@@ -677,8 +683,10 @@ where
 /// ```no_run
 /// # use bevy::prelude::*;
 /// # use bevy_fsm::{FSMState, FSMTransition, on_fsm_added};
-/// # #[derive(Component, FSMState, Reflect, Clone, Copy, Debug, PartialEq, Eq, Hash)]
+/// # use bevy_enum_events::{EnumEvents, FSMStates};
+/// # #[derive(Component, EnumEvents, FSMStates, Reflect, Clone, Copy, Debug, PartialEq, Eq, Hash)]
 /// # enum YourFSM { StateA }
+/// # impl FSMState for YourFSM {}
 /// # impl FSMTransition for YourFSM {
 /// #     fn can_transition(_: Self, _: Self) -> bool { true }
 /// # }
@@ -711,8 +719,10 @@ pub fn on_fsm_added<S: FSMState>(
 /// ```no_run
 /// # use bevy::prelude::*;
 /// # use bevy_fsm::{FSMState, FSMTransition, apply_state_request};
-/// # #[derive(Component, FSMState, Reflect, Clone, Copy, Debug, PartialEq, Eq, Hash)]
+/// # use bevy_enum_events::{EnumEvents, FSMStates};
+/// # #[derive(Component, EnumEvents, FSMStates, Reflect, Clone, Copy, Debug, PartialEq, Eq, Hash)]
 /// # enum YourFSM { StateA }
+/// # impl FSMState for YourFSM {}
 /// # impl FSMTransition for YourFSM {
 /// #     fn can_transition(_: Self, _: Self) -> bool { true }
 /// # }
@@ -752,9 +762,10 @@ pub fn apply_state_request<S: FSMState + core::hash::Hash>(
                 RuleType::All => {
                     // All mode: no config restrictions, optionally check rules
                     if cfg.call_rules
-                        && !<S as FSMState>::can_transition_ctx(world, entity, cur, next) {
-                            return;
-                        }
+                        && !<S as FSMState>::can_transition_ctx(world, entity, cur, next)
+                    {
+                        return;
+                    }
                 }
                 RuleType::None => {
                     // None mode: deny everything
@@ -783,9 +794,10 @@ pub fn apply_state_request<S: FSMState + core::hash::Hash>(
                     } else {
                         // NOT on blacklist: check rules if enabled
                         if cfg.call_rules
-                            && !<S as FSMState>::can_transition_ctx(world, entity, cur, next) {
-                                return;
-                            }
+                            && !<S as FSMState>::can_transition_ctx(world, entity, cur, next)
+                        {
+                            return;
+                        }
                     }
                 }
             }
@@ -830,8 +842,10 @@ pub fn apply_state_request<S: FSMState + core::hash::Hash>(
 /// ```no_run
 /// # use bevy::prelude::*;
 /// # use bevy_fsm::{FSMState, FSMTransition, FSMPlugin, fsm_observer, Enter};
-/// # #[derive(Component, FSMState, Reflect, Clone, Copy, Debug, PartialEq, Eq, Hash)]
+/// # use bevy_enum_events::{EnumEvents, FSMStates};
+/// # #[derive(Component, EnumEvents, FSMStates, Reflect, Clone, Copy, Debug, PartialEq, Eq, Hash)]
 /// # enum LifeFSM { Alive, Dying }
+/// # impl FSMState for LifeFSM {}
 /// # impl FSMTransition for LifeFSM {
 /// #     fn can_transition(_: Self, _: Self) -> bool { true }
 /// # }

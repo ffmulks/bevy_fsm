@@ -25,6 +25,7 @@ Observer-driven finite state machine framework for Bevy ECS.
 ```rust
 use bevy::prelude::*;
 use bevy_fsm::{FSMState, FSMTransition, FSMPlugin, StateChangeRequest, Enter, Exit, Transition, fsm_observer};
+use bevy_enum_events::{EnumEvents, FSMStates};
 
 fn plugin(app: &mut App) {
     // FSMPlugin automatically sets up the observer hierarchy on first use
@@ -39,13 +40,15 @@ fn plugin(app: &mut App) {
     fsm_observer!(app, LifeFSM, on_transition_dying_dead);
 }
 
-#[derive(Component, FSMState, Reflect, Clone, Copy, Debug, PartialEq, Eq, Hash)]
+#[derive(Component, EnumEvents, FSMStates, Reflect, Clone, Copy, Debug, PartialEq, Eq, Hash)]
 #[reflect(Component)]
 enum LifeFSM {
     Alive,
     Dying,
     Dead,
 }
+
+impl FSMState for LifeFSM {}
 
 impl FSMTransition for LifeFSM {
     // This is used as baseline filter to allow and forbid transitions
@@ -105,21 +108,29 @@ impl FSMTransition for MyFSM {
 }
 ```
 
-### FSMState Derive
+### EnumEvents and FSMStates Derives
 
-The `#[derive(FSMState)]` macro automatically:
-- Generates variant-specific event types in a `modulename::Variant` hierarchy
-- Implements the `FSMState` trait
-- Triggers `Enter<modulename::Variant>` and `Exit<modulename::Variant>` events
-- Creates `Transition<S, S>` events for the full enum type
+**bevy_fsm** uses two derive macros from `bevy_enum_events`:
+
+1. **`#[derive(EnumEvents)]`** - Generates variant-specific event types in a `modulename::Variant` hierarchy
+2. **`#[derive(FSMStates)]`** - Implements FSM-specific trigger methods for Enter/Exit/Transition events
+
+Together they enable:
+- Type-safe variant-specific events
+- Automatic Enter/Exit event triggering
+- Full N×N transition event support
 
 ```rust
-#[derive(Component, FSMState, Clone, Copy, Debug, PartialEq, Eq, Hash)]
+use bevy_enum_events::{EnumEvents, FSMStates};
+
+#[derive(Component, EnumEvents, FSMStates, Clone, Copy, Debug, PartialEq, Eq, Hash)]
 enum BlockFSM {
     Tile,    // Generates blockfsm::Tile event type
     Loose,   // Generates blockfsm::Loose event type
     Disabled // Generates blockfsm::Disabled event type
 }
+
+impl FSMState for BlockFSM {}
 
 // Use with Enter/Exit wrappers:
 fn on_tile_enter(trigger: Trigger<Enter<blockfsm::Tile>>, ...) { }
@@ -458,12 +469,16 @@ fn test_state_transition() {
 ```
 bevy_fsm/
 ├── src/lib.rs           # Core traits and observer functions
-├── bevy_fsm_macros/     # Procedural macro implementation
-│   ├── src/lib.rs
-│   └── Cargo.toml
+├── Cargo.toml
+└── README.md
+
+bevy_enum_events/        # Separate crate (dependency)
+├── src/lib.rs           # EnumEvents and FSMStates derive macros
 ├── Cargo.toml
 └── README.md
 ```
+
+**Note**: `bevy_fsm` depends on `bevy_enum_events` with the `fsm` feature enabled.
 
 ## License
 

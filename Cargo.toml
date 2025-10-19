@@ -14,12 +14,5 @@ documentation = "https://docs.rs/bevy_fsm"
 
 [dependencies]
 bevy = { version = "0.16", default-features = false }
-bevy_fsm_macros = { version = "=0.1.0", path = "bevy_fsm_macros" }
-bevy_enum_events = { git = "file:///C:/Users/fmulk/gamedev/rust/bevy_enum_events", branch = "main" }
+bevy_enum_events = { path = "../bevy_enum_events", features = ["fsm"] }
 
-[workspace]
-members = ["bevy_fsm_macros"]
-
-# Don't include certain files in the published package
-[package.metadata]
-# bevy_fsm_macros is bundled automatically via path dependency
