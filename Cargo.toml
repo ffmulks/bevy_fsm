@@ -1,11 +1,29 @@
-[package]
-name = "bevy_fsm"
+[workspace]
+resolver = "2"
+members = ["bevy_fsm_macros"]
+
+[workspace.package]
 version = "0.1.0"
 edition = "2021"
 license = "MIT OR Apache-2.0"
-description = "Observer-driven finite state machine framework for Bevy ECS with variant-specific events and flexible validation"
 repository = "https://github.com/ffmulks/bevy_fsm"
-authors = ["Dr. Florian Mulks <dr@mulks.ac>"]
+authors = ["Dr. Florian Mulks <ff@mulks.ac>"]
+
+[workspace.dependencies]
+bevy = { version = "0.16", default-features = false }
+bevy_enum_event = { git = "https://github.com/ffmulks/bevy_enum_event", branch = "main" }
+syn = { version = "2.0.107", features = ["full", "visit"] }
+quote = "1.0"
+proc-macro2 = "1.0"
+
+[package]
+name = "bevy_fsm"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Observer-driven finite state machine framework for Bevy ECS with variant-specific events and flexible validation"
+repository.workspace = true
+authors.workspace = true
 keywords = ["bevy", "fsm", "state-machine", "ecs", "gamedev"]
 categories = ["game-development"]
 readme = "README.md"
@@ -13,10 +31,9 @@ homepage = "https://github.com/ffmulks/bevy_fsm"
 documentation = "https://docs.rs/bevy_fsm"
 
 [dependencies]
-bevy = { version = "0.16", default-features = false }
-bevy_enum_event = { git = "https://github.com/ffmulks/bevy_enum_event", branch = "main", features = [
-    "fsm",
-] }
+bevy.workspace = true
+bevy_enum_event.workspace = true
+bevy_fsm_macros = { path = "bevy_fsm_macros" }
 
 [dev-dependencies]
-bevy = { version = "0.16", default-features = false, features = ["bevy_state"] }
+bevy = { workspace = true, features = ["bevy_state"] }

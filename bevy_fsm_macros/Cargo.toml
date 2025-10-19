@@ -1,0 +1,19 @@
+[package]
+name = "bevy_fsm_macros"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Procedural macros for bevy_fsm - FSM derive macros"
+repository.workspace = true
+authors.workspace = true
+keywords = ["bevy", "fsm", "macros"]
+categories = ["game-development"]
+
+[lib]
+proc-macro = true
+
+[dependencies]
+syn.workspace = true
+quote.workspace = true
+proc-macro2.workspace = true
+bevy_enum_event.workspace = true

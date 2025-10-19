@@ -13,9 +13,9 @@
 //! Run with: cargo run --example basic
 
 use bevy::prelude::*;
-use bevy_enum_event::{EnumEvent, FSMState};
 use bevy_fsm::{
-    fsm_observer, Enter, Exit, FSMPlugin, FSMTransition, StateChangeRequest, Transition,
+    fsm_observer, Enter, EnumEvent, Exit, FSMPlugin, FSMState, FSMTransition, StateChangeRequest,
+    Transition,
 };
 
 fn main() {

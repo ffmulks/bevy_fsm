@@ -15,8 +15,7 @@
 //! Run with: `cargo run --example transition_rules`
 
 use bevy::prelude::*;
-use bevy_enum_event::{EnumEvent, FSMState};
-use bevy_fsm::{fsm_observer, Enter, FSMPlugin, FSMTransition, StateChangeRequest};
+use bevy_fsm::{EnumEvent, FSMState, FSMTransition, fsm_observer, Enter, FSMPlugin, StateChangeRequest};
 
 fn main() {
     let mut app = App::new();

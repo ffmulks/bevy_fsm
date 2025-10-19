@@ -10,7 +10,7 @@
 //! - **Observer-driven**: React to state changes via Bevy observers
 //! - **Variant-specific events**: No runtime state checks needed in observers
 //! - **Flexible validation**: Per-entity and per-type transition rules
-//! - **Minimal API**: FSMPlugin for automatic setup
+//! - **Minimal API**: `FSMPlugin` for automatic setup
 //! - **Organized hierarchy**: Observers automatically organized in entity hierarchy
 //!
 //! # Quick Start
@@ -18,7 +18,7 @@
 //! ```rust
 //! use bevy::prelude::*;
 //! use bevy_fsm::{FSMState, FSMTransition, FSMPlugin, StateChangeRequest, Enter, Exit, Transition, fsm_observer};
-//! use bevy_enum_event::{EnumEvent, FSMState, FSMTransition};
+//! use bevy_enum_event::EnumEvent;
 //!
 //! fn plugin(app: &mut App) {
 //!     // FSMPlugin automatically sets up the observer hierarchy on first use
@@ -150,15 +150,16 @@ use bevy::{
     platform::collections::{HashMap, HashSet},
     reflect::GetTypeRegistration,
 };
-// Re-export the derive macross from bevy_enum_event for convenience
-// Note: FSMState and FSMTransition are both traits (below) and derive macros (from bevy_enum_event)
-pub use bevy_enum_event::{EnumEvent, FSMState, FSMTransition};
+// Re-export EnumEvent from bevy_enum_event and FSM derives from bevy_fsm_macros
+// Note: FSMState and FSMTransition are both traits (below) and derive macros (from bevy_fsm_macros)
+pub use bevy_enum_event::EnumEvent;
+pub use bevy_fsm_macros::{FSMState, FSMTransition};
 use std::any::TypeId;
 
 /// Macro for registering FSM observers sorting them into the per-FSM hierarchy.
 ///
 /// Observers registered with this macro will be organized under:
-/// FSMObservers -> {FSMName} -> observer
+/// `FSMObservers` -> {`FSMName`} -> observer
 ///
 /// Uses the same naming convention as `global_observer!` for consistency.
 ///
@@ -166,7 +167,7 @@ use std::any::TypeId;
 /// ```no_run
 /// # use bevy::prelude::*;
 /// # use bevy_fsm::{FSMState, FSMTransition, fsm_observer, Enter};
-/// # use bevy_enum_event::{EnumEvent, FSMState, FSMTransition};
+/// # use bevy_enum_event::EnumEvent;
 /// # #[derive(Component, EnumEvent, FSMTransition, FSMState, Reflect, Clone, Copy, Debug, PartialEq, Eq, Hash)]
 /// # enum LifeFSM { Alive, Dying }
 /// # fn on_dying_observer(_: Trigger<Enter<life_fsm::Dying>>) {}
@@ -297,7 +298,7 @@ pub trait FSMTransition {
 /// This trait provides the infrastructure for variant-specific event generation
 /// and state transition management.
 pub trait FSMState: Component + Copy + Eq + Send + Sync + 'static + FSMTransition {
-    /// Validate transition (delegated to FSMTransition impl).
+    /// Validate transition (delegated to `FSMTransition` impl).
     fn can_transition(from: Self, to: Self) -> bool {
         <Self as FSMTransition>::can_transition(from, to)
     }
@@ -322,44 +323,44 @@ pub trait FSMState: Component + Copy + Eq + Send + Sync + 'static + FSMTransitio
 
 /// Configuration mode for FSM transition validation set in the [`FSMOverride`] component.
 ///
-/// The mode determines priority behavior - config wins over FSMTransition rules:
+/// The mode determines priority behavior - config wins over `FSMTransition` rules:
 /// - **Whitelist**: Transitions ON the list are **immediately accepted** (override rules)
 /// - **Blacklist**: Transitions ON the list are **immediately denied** (override rules)
-/// - Transitions NOT decided by the config can still use FSMTransition rules (if `call_rules: true`)
+/// - Transitions NOT decided by the config can still use `FSMTransition` rules (if `call_rules: true`)
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Reflect)]
 pub enum RuleType {
-    /// No config restrictions - defer to FSMTransition rules.
+    /// No config restrictions - defer to `FSMTransition` rules.
     ///
-    /// The `transitions` set is ignored. If `call_rules: true`, FSMTransition validation
+    /// The `transitions` set is ignored. If `call_rules: true`, `FSMTransition` validation
     /// applies. If `call_rules: false`, all transitions are allowed.
     All,
 
     /// Deny all transitions (immutable state).
     ///
     /// The `transitions` set is ignored. All transitions are hard-denied.
-    /// FSMTransition validation is never reached.
+    /// `FSMTransition` validation is never reached.
     None,
 
     /// Whitelist mode - listed transitions are prioritized and accepted.
     ///
     /// **Priority behavior:**
-    /// - If transition IS in set → **ACCEPT** (whitelist wins, FSMTransition NOT checked)
+    /// - If transition IS in set → **ACCEPT** (whitelist wins, `FSMTransition` NOT checked)
     /// - If transition is NOT in set:
-    ///   - With `call_rules: true` → Check FSMTransition (can accept or deny)
+    ///   - With `call_rules: true` → Check `FSMTransition` (can accept or deny)
     ///   - With `call_rules: false` → **DENY** (default)
     ///
-    /// Use this to explicitly allow specific transitions regardless of FSMTransition rules.
+    /// Use this to explicitly allow specific transitions regardless of `FSMTransition` rules.
     Whitelist,
 
     /// Blacklist mode - listed transitions are prioritized and denied.
     ///
     /// **Priority behavior:**
-    /// - If transition IS in set → **DENY** (blacklist wins, FSMTransition NOT checked)
+    /// - If transition IS in set → **DENY** (blacklist wins, `FSMTransition` NOT checked)
     /// - If transition is NOT in set:
-    ///   - With `call_rules: true` → Check FSMTransition (can accept or deny)
+    ///   - With `call_rules: true` → Check `FSMTransition` (can accept or deny)
     ///   - With `call_rules: false` → **ACCEPT** (default)
     ///
-    /// Use this to explicitly forbid specific transitions regardless of FSMTransition rules.
+    /// Use this to explicitly forbid specific transitions regardless of `FSMTransition` rules.
     Blacklist,
 }
 
@@ -370,7 +371,7 @@ pub enum RuleType {
 ///
 /// # Priority Model: Config Wins, Rules Fill Gaps
 ///
-/// FSMOverride has **priority** over FSMTransition rules:
+/// `FSMOverride` has **priority** over `FSMTransition` rules:
 ///
 /// ```text
 /// Transition Request
@@ -394,17 +395,17 @@ pub enum RuleType {
 ///
 /// # Validation Flow
 ///
-/// 1. **FSMOverride (if present):**
+/// 1. **`FSMOverride` (if present):**
 ///    - **Whitelist mode:**
 ///      - ON list: ACCEPT immediately
-///      - NOT on list: Check `call_rules` → if true check FSMTransition, else DENY
+///      - NOT on list: Check `call_rules` → if true check `FSMTransition`, else DENY
 ///    - **Blacklist mode:**
 ///      - ON list: DENY immediately
-///      - NOT on list: Check `call_rules` → if true check FSMTransition, else ACCEPT
-///    - **All mode:** Check `call_rules` → if true check FSMTransition, else ACCEPT all
+///      - NOT on list: Check `call_rules` → if true check `FSMTransition`, else ACCEPT
+///    - **All mode:** Check `call_rules` → if true check `FSMTransition`, else ACCEPT all
 ///    - **None mode:** DENY all (immutable)
 ///
-/// 2. **No FSMOverride:**
+/// 2. **No `FSMOverride`:**
 ///    - Falls back to `FSMTransition::can_transition_ctx` only
 ///
 /// # Examples
@@ -462,13 +463,13 @@ pub enum RuleType {
 /// # Use Cases
 ///
 /// - **Force allow specific transitions**: Use `whitelist([...])` to allow transitions
-///   that FSMTransition would normally forbid - whitelist wins
+///   that `FSMTransition` would normally forbid - whitelist wins
 /// - **Force deny specific transitions**: Use `blacklist([...])` to prevent transitions
-///   that FSMTransition would normally allow - blacklist wins
+///   that `FSMTransition` would normally allow - blacklist wins
 /// - **Whitelist + fallback to rules**: Use `whitelist([...]).with_rules()` to allow
-///   specific transitions unconditionally while checking FSMTransition for others
+///   specific transitions unconditionally while checking `FSMTransition` for others
 /// - **Blacklist + fallback to rules**: Use `blacklist([...]).with_rules()` to deny
-///   specific transitions unconditionally while checking FSMTransition for others
+///   specific transitions unconditionally while checking `FSMTransition` for others
 /// - **Immutable states**: Use `deny_all()` for entities that should never change state
 #[derive(Component, Reflect, Debug)]
 #[reflect(Component)]
@@ -477,17 +478,17 @@ pub struct FSMOverride<S: Copy + Eq + core::hash::Hash + Send + Sync + 'static> 
     pub mode: RuleType,
     /// Transitions set (interpretation depends on mode).
     transitions: HashSet<(S, S)>,
-    /// Whether to check FSMTransition for transitions NOT decided by the config.
+    /// Whether to check `FSMTransition` for transitions NOT decided by the config.
     ///
-    /// - **Whitelist mode**: If `true`, transitions NOT on whitelist check FSMTransition.
+    /// - **Whitelist mode**: If `true`, transitions NOT on whitelist check `FSMTransition`.
     ///   If `false`, they are denied.
-    /// - **Blacklist mode**: If `true`, transitions NOT on blacklist check FSMTransition.
+    /// - **Blacklist mode**: If `true`, transitions NOT on blacklist check `FSMTransition`.
     ///   If `false`, they are allowed.
-    /// - **All mode**: If `true`, check FSMTransition. If `false`, allow everything.
+    /// - **All mode**: If `true`, check `FSMTransition`. If `false`, allow everything.
     /// - **None mode**: Ignored (all transitions denied).
     ///
     /// **Note**: Transitions ON whitelist/blacklist are decided by config and do NOT
-    /// check FSMTransition regardless of this flag (config has priority).
+    /// check `FSMTransition` regardless of this flag (config has priority).
     pub call_rules: bool,
 }
 
@@ -508,8 +509,8 @@ impl<S> FSMOverride<S>
 where
     S: Copy + Eq + core::hash::Hash + Send + Sync + 'static,
 {
-    /// Allow all transitions (validate only via FSMTransition trait).
-    pub fn allow_all() -> Self {
+    /// Allow all transitions (validate only via `FSMTransition` trait).
+    #[must_use] pub fn allow_all() -> Self {
         Self {
             mode: RuleType::All,
             transitions: HashSet::new(),
@@ -518,7 +519,7 @@ where
     }
 
     /// Deny all transitions (immutable state).
-    pub fn deny_all() -> Self {
+    #[must_use] pub fn deny_all() -> Self {
         Self {
             mode: RuleType::None,
             transitions: HashSet::new(),
@@ -550,18 +551,18 @@ where
         }
     }
 
-    /// Enable FSMTransition validation for transitions NOT decided by config.
+    /// Enable `FSMTransition` validation for transitions NOT decided by config.
     ///
-    /// By default, FSMOverride is the sole authority - whitelisted/blacklisted transitions
+    /// By default, `FSMOverride` is the sole authority - whitelisted/blacklisted transitions
     /// are decided by config alone, others have default behavior. Calling `with_rules()`
-    /// applies FSMTransition validation to the "gap" transitions not explicitly listed.
+    /// applies `FSMTransition` validation to the "gap" transitions not explicitly listed.
     ///
     /// **Behavior by mode:**
     /// - **Whitelist**: Listed transitions still ACCEPT (config priority). Unlisted
-    ///   transitions now check FSMTransition instead of auto-denying.
+    ///   transitions now check `FSMTransition` instead of auto-denying.
     /// - **Blacklist**: Listed transitions still DENY (config priority). Unlisted
-    ///   transitions now check FSMTransition instead of auto-allowing.
-    /// - **All**: No whitelist/blacklist, so all transitions check FSMTransition.
+    ///   transitions now check `FSMTransition` instead of auto-allowing.
+    /// - **All**: No whitelist/blacklist, so all transitions check `FSMTransition`.
     /// - **None**: No effect (all transitions denied).
     ///
     /// # Examples
@@ -590,7 +591,7 @@ where
     /// // A->C: DENY (blacklisted, config priority)
     /// // A->B: Check FSMTransition (not blacklisted, rules enabled)
     /// ```
-    pub fn with_rules(mut self) -> Self {
+    #[must_use] pub fn with_rules(mut self) -> Self {
         self.call_rules = true;
         self
     }
@@ -600,6 +601,7 @@ where
     /// For whitelist mode: adds allowed transitions.
     /// For blacklist mode: adds denied transitions.
     /// For All/None modes: has no effect.
+    #[must_use]
     pub fn and_allow<I>(mut self, edges: I) -> Self
     where
         I: IntoIterator<Item = (S, S)>,
@@ -611,6 +613,7 @@ where
     /// Add denied transitions (for blacklist mode).
     ///
     /// Alias for `and_allow()` when using blacklist mode for semantic clarity.
+    #[must_use]
     pub fn and_deny<I>(mut self, edges: I) -> Self
     where
         I: IntoIterator<Item = (S, S)>,
@@ -679,12 +682,13 @@ where
 /// ```no_run
 /// # use bevy::prelude::*;
 /// # use bevy_fsm::{FSMState, FSMTransition, on_fsm_added};
-/// # use bevy_enum_event::{EnumEvent, FSMState, FSMTransition};
+/// # use bevy_enum_event::EnumEvent;
 /// # #[derive(Component, EnumEvent, FSMTransition, FSMState, Reflect, Clone, Copy, Debug, PartialEq, Eq, Hash)]
 /// # enum YourFSM { StateA }
 /// # let mut app = App::new();
 /// app.world_mut().add_observer(on_fsm_added::<YourFSM>);
 /// ```
+#[allow(clippy::needless_pass_by_value)]
 pub fn on_fsm_added<S: FSMState>(
     trigger: Trigger<OnAdd, S>,
     mut commands: Commands,
@@ -711,7 +715,7 @@ pub fn on_fsm_added<S: FSMState>(
 /// ```no_run
 /// # use bevy::prelude::*;
 /// # use bevy_fsm::{FSMState, FSMTransition, apply_state_request};
-/// # use bevy_enum_event::{EnumEvent, FSMState, FSMTransition};
+/// # use bevy_enum_event::EnumEvent;
 /// # #[derive(Component, EnumEvent, FSMTransition, FSMState, Reflect, Clone, Copy, Debug, PartialEq, Eq, Hash)]
 /// # enum YourFSM { StateA }
 /// # let mut app = App::new();
@@ -720,6 +724,7 @@ pub fn on_fsm_added<S: FSMState>(
 ///
 /// Gracefully handles entities that may have been despawned or had their FSM
 /// component removed by using a query to check component existence.
+#[allow(clippy::needless_pass_by_value)]
 pub fn apply_state_request<S: FSMState + core::hash::Hash>(
     trigger: Trigger<StateChangeRequest<S>>,
     mut commands: Commands,
@@ -779,13 +784,12 @@ pub fn apply_state_request<S: FSMState + core::hash::Hash>(
                     if in_set {
                         // ON blacklist: DENY immediately (blacklist wins)
                         return;
-                    } else {
-                        // NOT on blacklist: check rules if enabled
-                        if cfg.call_rules
-                            && !<S as FSMState>::can_transition_ctx(world, entity, cur, next)
-                        {
-                            return;
-                        }
+                    }
+                    // NOT on blacklist: check rules if enabled
+                    if cfg.call_rules
+                        && !<S as FSMState>::can_transition_ctx(world, entity, cur, next)
+                    {
+                        return;
                     }
                 }
             }
@@ -830,7 +834,7 @@ pub fn apply_state_request<S: FSMState + core::hash::Hash>(
 /// ```no_run
 /// # use bevy::prelude::*;
 /// # use bevy_fsm::{FSMState, FSMTransition, FSMPlugin, fsm_observer, Enter};
-/// # use bevy_enum_event::{EnumEvent, FSMState, FSMTransition};
+/// # use bevy_enum_event::{EnumEvent};
 /// # #[derive(Component, EnumEvent, FSMTransition, FSMState, Reflect, Clone, Copy, Debug, PartialEq, Eq, Hash)]
 /// # enum LifeFSM { Alive, Dying }
 /// # fn on_dying_observer(_: Trigger<Enter<life_fsm::Dying>>) {}
@@ -841,7 +845,7 @@ pub fn apply_state_request<S: FSMState + core::hash::Hash>(
 /// fsm_observer!(app, LifeFSM, on_dying_observer);
 /// ```
 pub struct FSMPlugin<S: FSMState + core::hash::Hash + Component> {
-    /// If true, skip registering the on_fsm_added observer
+    /// If true, skip registering the `on_fsm_added` observer
     ignore_fsm_addition: bool,
     _phantom: std::marker::PhantomData<S>,
 }
@@ -856,15 +860,15 @@ impl<S: FSMState + core::hash::Hash + Component> Default for FSMPlugin<S> {
 }
 
 impl<S: FSMState + core::hash::Hash + Component> FSMPlugin<S> {
-    /// Create a new FSMPlugin with default settings.
-    pub fn new() -> Self {
+    /// Create a new `FSMPlugin` with default settings.
+    #[must_use] pub fn new() -> Self {
         Self::default()
     }
 
-    /// Skip registering the on_fsm_added observer.
+    /// Skip registering the `on_fsm_added` observer.
     ///
     /// Use this if you don't want automatic Enter events when the FSM component is added.
-    pub fn ignore_fsm_addition(mut self) -> Self {
+    #[must_use] pub fn ignore_fsm_addition(mut self) -> Self {
         self.ignore_fsm_addition = true;
         self
     }
@@ -909,7 +913,7 @@ struct FSMObserverHierarchy {
     groups: HashMap<TypeId, Entity>,
 }
 
-/// Marker component for the root FSMObservers entity.
+/// Marker component for the root `FSMObservers` entity.
 #[derive(Component)]
 struct FSMObserversRoot;
 
