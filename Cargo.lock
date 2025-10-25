@@ -133,7 +133,8 @@ dependencies = [
 [[package]]
 name = "bevy_enum_event"
 version = "0.1.0"
-source = "git+https://github.com/ffmulks/bevy_enum_event?branch=main#92d0928dee4d96786886cb9bc01c1021c5e9eebc"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0a2d21241b608fd2da3aefca0096157498db8a7390b7fa51243b2dedbb18a5cc"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -191,7 +192,6 @@ dependencies = [
  "bevy_platform",
  "bevy_ptr",
  "bevy_reflect",
- "bevy_state",
  "bevy_tasks",
  "bevy_time",
  "bevy_transform",
@@ -285,34 +285,6 @@ dependencies = [
  "quote",
  "syn",
  "uuid",
-]
-
-[[package]]
-name = "bevy_state"
-version = "0.16.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "155d3cd97b900539008cdcaa702f88b724d94b08977b8e591a32536ce66faa8c"
-dependencies = [
- "bevy_app",
- "bevy_ecs",
- "bevy_platform",
- "bevy_reflect",
- "bevy_state_macros",
- "bevy_utils",
- "log",
- "variadics_please",
-]
-
-[[package]]
-name = "bevy_state_macros"
-version = "0.16.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2481c1304fd2a1851a0d4cb63a1ce6421ae40f3f0117cbc9882963ee4c9bb609"
-dependencies = [
- "bevy_macro_utils",
- "proc-macro2",
- "quote",
- "syn",
 ]
 
 [[package]]

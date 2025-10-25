@@ -480,6 +480,12 @@ bevy_enum_event/        # Separate crate (dependency)
 
 **Note**: `bevy_fsm` depends on `bevy_enum_event` with the `fsm` feature enabled.
 
+## AI Disclaimer
+
+- Refactoring and documentation supported by Claude Code
+- Minor editing supported by ChatGPT Codex
+- The process and final releases are thoroughly supervised and checked by the author
+
 ## License
 
 Licensed under either of:
