@@ -9,6 +9,9 @@ authors.workspace = true
 keywords = ["bevy", "fsm", "macros"]
 categories = ["game-development"]
 
+[package.metadata.docs.rs]
+all-features = true
+
 [lib]
 proc-macro = true
 

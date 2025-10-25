@@ -25,7 +25,7 @@ Observer-driven finite state machine framework for Bevy ECS.
 ```rust
 use bevy::prelude::*;
 use bevy_fsm::{FSMState, FSMTransition, FSMPlugin, StateChangeRequest, Enter, Exit, Transition, fsm_observer};
-use bevy_enum_event::{EnumEvent, FSMState};
+use bevy_enum_event::EnumEvent;
 
 fn plugin(app: &mut App) {
     // FSMPlugin automatically sets up the observer hierarchy on first use
@@ -47,8 +47,6 @@ enum LifeFSM {
     Dying,
     Dead,
 }
-
-impl FSMState for LifeFSM {}
 
 impl FSMTransition for LifeFSM {
     // This is used as baseline filter to allow and forbid transitions
