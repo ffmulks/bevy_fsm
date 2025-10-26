@@ -109,23 +109,23 @@ fn drive_state_transitions(
                 "  {}xpecting transition",
                 if allowed { "E" } else { "NOT e" }
             );
-            commands.trigger_targets(StateChangeRequest { next: target }, entity);
+            commands.trigger(StateChangeRequest { entity, next: target });
         }
     }
 }
 
-fn on_enter_main_menu(_trigger: Trigger<Enter<game_state::MainMenu>>) {
+fn on_enter_main_menu(_trigger: On<Enter<game_state::MainMenu>>) {
     println!("  [ENTER MainMenu] Showing title screen");
 }
 
-fn on_enter_playing(_trigger: Trigger<Enter<game_state::Playing>>) {
+fn on_enter_playing(_trigger: On<Enter<game_state::Playing>>) {
     println!("  [ENTER Playing] Gameplay started");
 }
 
-fn on_enter_paused(_trigger: Trigger<Enter<game_state::Paused>>) {
+fn on_enter_paused(_trigger: On<Enter<game_state::Paused>>) {
     println!("  [ENTER Paused] Game paused");
 }
 
-fn on_enter_game_over(_trigger: Trigger<Enter<game_state::GameOver>>) {
+fn on_enter_game_over(_trigger: On<Enter<game_state::GameOver>>) {
     println!("  [ENTER GameOver] Game over screen displayed");
 }

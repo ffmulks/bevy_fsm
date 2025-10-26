@@ -25,7 +25,7 @@ Observer-driven finite state machine framework for Bevy ECS.
 ```rust
 use bevy::prelude::*;
 use bevy_fsm::{FSMState, FSMTransition, FSMPlugin, StateChangeRequest, Enter, Exit, Transition, fsm_observer};
-use bevy_enum_event::{EnumEvent, FSMState};
+use bevy_enum_event::EnumEvent;
 
 fn plugin(app: &mut App) {
     // FSMPlugin automatically sets up the observer hierarchy on first use
@@ -47,8 +47,6 @@ enum LifeFSM {
     Dying,
     Dead,
 }
-
-impl FSMState for LifeFSM {}
 
 impl FSMTransition for LifeFSM {
     // This is used as baseline filter to allow and forbid transitions
@@ -314,11 +312,13 @@ impl FSMTransition for AnimationState {
 
 Each FSM generates several event types:
 
-- `StateChangeRequest<S>`: Trigger to request a state change
-- `Enter<S>`: Generic enter event with `state` field
-- `Exit<S>`: Generic exit event with `state` field
-- `Transition<S, S>`: Generic transition event with `from` and `to` fields
+- `StateChangeRequest<S>`: Trigger to request a state change (fields: `entity`, `next`)
+- `Enter<S>`: Generic enter event (fields: `entity`, `state`)
+- `Exit<S>`: Generic exit event (fields: `entity`, `state`)
+- `Transition<S, S>`: Generic transition event (fields: `entity`, `from`, `to`)
 - `modulename::Variant`: Type-safe variant event types (used with `Enter<T>` and `Exit<T>` wrappers)
+
+**Note**: All events implement `EntityEvent`, so you can use `trigger.target()` to get the entity ID, or access `trigger.event().entity` directly.
 
 ## How It Works
 
@@ -453,9 +453,11 @@ fn test_state_transition() {
     app.update(); // Triggers on_fsm_added
 
     // Request transition
-    app.world_mut().commands().trigger_targets(
-        StateChangeRequest::<LifeFSM> { next: LifeFSM::Dying },
-        entity,
+    app.world_mut().commands().trigger(
+        StateChangeRequest::<LifeFSM> {
+            entity,
+            next: LifeFSM::Dying,
+        },
     );
     app.update();
 
@@ -479,6 +481,12 @@ bevy_enum_event/        # Separate crate (dependency)
 ```
 
 **Note**: `bevy_fsm` depends on `bevy_enum_event` with the `fsm` feature enabled.
+
+## AI Disclaimer
+
+- Refactoring and documentation supported by Claude Code
+- Minor editing supported by ChatGPT Codex
+- The process and final releases are thoroughly supervised and checked by the author
 
 ## License
 
