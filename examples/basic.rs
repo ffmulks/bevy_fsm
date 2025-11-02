@@ -98,11 +98,11 @@ fn trigger_transitions(
         if *elapsed >= 1.0 && !*triggered_10 {
             *triggered_10 = true;
             println!("\n--- Triggering transition: {} Alive -> Dying ---", name);
-            commands.trigger_targets(
+            commands.trigger(
                 StateChangeRequest {
+                    entity,
                     next: LifeFSM::Dying,
                 },
-                entity,
             );
         }
 
@@ -113,11 +113,11 @@ fn trigger_transitions(
                 "\n--- Triggering transition: {} Dying -> Alive (Resurrection!) ---",
                 name
             );
-            commands.trigger_targets(
+            commands.trigger(
                 StateChangeRequest {
+                    entity,
                     next: LifeFSM::Alive,
                 },
-                entity,
             );
         }
 
@@ -125,11 +125,11 @@ fn trigger_transitions(
         if *elapsed >= 3.0 && !*triggered_30 && state == LifeFSM::Alive {
             *triggered_30 = true;
             println!("\n--- Triggering transition: {} Alive -> Dying ---", name);
-            commands.trigger_targets(
+            commands.trigger(
                 StateChangeRequest {
+                    entity,
                     next: LifeFSM::Dying,
                 },
-                entity,
             );
         }
 
@@ -137,11 +137,11 @@ fn trigger_transitions(
         if *elapsed >= 4.0 && !*triggered_40 && state == LifeFSM::Dying {
             *triggered_40 = true;
             println!("\n--- Triggering transition: {} Dying -> Dead ---", name);
-            commands.trigger_targets(
+            commands.trigger(
                 StateChangeRequest {
+                    entity,
                     next: LifeFSM::Dead,
                 },
-                entity,
             );
         }
 
@@ -155,8 +155,8 @@ fn trigger_transitions(
 }
 
 /// Observer: Fires when entering the Dying state
-fn on_enter_dying(trigger: Trigger<Enter<life_fsm::Dying>>, mut commands: Commands) {
-    let entity = trigger.target();
+fn on_enter_dying(trigger: On<Enter<life_fsm::Dying>>, mut commands: Commands) {
+    let entity = trigger.event().entity;
     println!("  [ENTER Dying] Entity {:?} is now dying!", entity);
 
     // Add a DyingAnimation component when entering Dying state
@@ -166,8 +166,8 @@ fn on_enter_dying(trigger: Trigger<Enter<life_fsm::Dying>>, mut commands: Comman
 }
 
 /// Observer: Fires when exiting the Alive state
-fn on_exit_alive(trigger: Trigger<Exit<life_fsm::Alive>>, query: Query<&Name>) {
-    let entity = trigger.target();
+fn on_exit_alive(trigger: On<Exit<life_fsm::Alive>>, query: Query<&Name>) {
+    let entity = trigger.event().entity;
     let name = query.get(entity).map(|n| n.as_str()).unwrap_or("Unknown");
     println!(
         "  [EXIT Alive] Entity {} ({:?}) is no longer alive!",
@@ -177,11 +177,11 @@ fn on_exit_alive(trigger: Trigger<Exit<life_fsm::Alive>>, query: Query<&Name>) {
 
 /// Observer: Fires on Dying -> Dead transition
 fn on_transition_dying_dead(
-    trigger: Trigger<Transition<life_fsm::Dying, life_fsm::Dead>>,
+    trigger: On<Transition<life_fsm::Dying, life_fsm::Dead>>,
     mut commands: Commands,
     query: Query<&Name>,
 ) {
-    let entity = trigger.target();
+    let entity = trigger.event().entity;
     let name = query.get(entity).map(|n| n.as_str()).unwrap_or("Unknown");
     println!(
         "  [TRANSITION Dying -> Dead] {} ({:?}) has died. Removing DyingAnimation...",
@@ -194,11 +194,11 @@ fn on_transition_dying_dead(
 
 /// Observer: Fires on Dying -> Alive transition (resurrection)
 fn on_transition_dying_alive(
-    trigger: Trigger<Transition<life_fsm::Dying, life_fsm::Alive>>,
+    trigger: On<Transition<life_fsm::Dying, life_fsm::Alive>>,
     mut commands: Commands,
     query: Query<&Name>,
 ) {
-    let entity = trigger.target();
+    let entity = trigger.event().entity;
     let name = query.get(entity).map(|n| n.as_str()).unwrap_or("Unknown");
     println!(
         "  [TRANSITION Dying -> Alive] {} ({:?}) has been resurrected!",

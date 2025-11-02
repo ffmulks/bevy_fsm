@@ -81,18 +81,18 @@ fn cycle_states(
 
             if let Some(next) = next_state {
                 println!("\n{} transitioning: {:?} -> {:?}", name, state, next);
-                commands.trigger_targets(StateChangeRequest { next }, entity);
+                commands.trigger(StateChangeRequest { entity, next });
             }
         }
     }
 }
 
 /// Observer: fires when entering Playing state
-fn on_enter_playing(_trigger: Trigger<Enter<game_state::Playing>>) {
+fn on_enter_playing(_trigger: On<Enter<game_state::Playing>>) {
     println!("  [ENTER Playing] Game started!");
 }
 
 /// Observer: fires when exiting Playing state
-fn on_exit_playing(_trigger: Trigger<Exit<game_state::Playing>>) {
+fn on_exit_playing(_trigger: On<Exit<game_state::Playing>>) {
     println!("  [EXIT Playing] Game stopped!");
 }

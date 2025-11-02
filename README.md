@@ -6,9 +6,8 @@ Observer-driven finite state machine framework for Bevy ECS.
 
 |  Bevy   | bevy_fsm |
 |---------|----------|
-| 0.17    | -        |
+| 0.17    | main     |
 | 0.16    | 0.1.0    |
-
 
 ## Features
 
@@ -25,7 +24,7 @@ Observer-driven finite state machine framework for Bevy ECS.
 ```rust
 use bevy::prelude::*;
 use bevy_fsm::{FSMState, FSMTransition, FSMPlugin, StateChangeRequest, Enter, Exit, Transition, fsm_observer};
-use bevy_enum_event::{EnumEvent, FSMState};
+use bevy_enum_event::EnumEvent;
 
 fn plugin(app: &mut App) {
     // FSMPlugin automatically sets up the observer hierarchy on first use
@@ -48,8 +47,6 @@ enum LifeFSM {
     Dead,
 }
 
-impl FSMState for LifeFSM {}
-
 impl FSMTransition for LifeFSM {
     // This is used as baseline filter to allow and forbid transitions
     fn can_transition(from: Self, to: Self) -> bool {
@@ -63,21 +60,21 @@ impl FSMTransition for LifeFSM {
 #[derive(Component)]
 struct DyingAnimation;
 
-fn on_enter_dying(trigger: Trigger<Enter<life_fsm::Dying>>, mut commands: Commands) {
-    let entity = trigger.target();
+fn on_enter_dying(trigger: On<Enter<life_fsm::Dying>>, mut commands: Commands) {
+    let entity = trigger.event().entity;
     commands.entity(entity).insert(DyingAnimation);
 }
 
-fn on_exit_alive(trigger: Trigger<Exit<life_fsm::Alive>>) {
-    let entity = trigger.target();
+fn on_exit_alive(trigger: On<Exit<life_fsm::Alive>>) {
+    let entity = trigger.event().entity;
     println!("Entity {} was unalived.", entity);
 }
 
 fn on_transition_dying_dead(
-    trigger: Trigger<Transition<life_fsm::Dying, life_fsm::Alive>>,
+    trigger: On<Transition<life_fsm::Dying, life_fsm::Alive>>,
     mut commands: Commands
 ) {
-    let entity = trigger.target();
+    let entity = trigger.event().entity;
     println!("Entity {} was saved from the brink of death.", entity);
 }
 ```
@@ -116,6 +113,7 @@ impl FSMTransition for MyFSM {
 2. **`#[derive(FSMState)]`** - Implements FSM-specific trigger methods for Enter/Exit/Transition events
 
 Together they enable:
+
 - Type-safe variant-specific events
 - Automatic Enter/Exit event triggering
 - Full N×N transition event support
@@ -133,8 +131,8 @@ enum BlockFSM {
 impl FSMState for BlockFSM {}
 
 // Use with Enter/Exit wrappers:
-fn on_tile_enter(trigger: Trigger<Enter<blockfsm::Tile>>, ...) { }
-fn on_tile_exit(trigger: Trigger<Exit<blockfsm::Tile>>, ...) { }
+fn on_tile_enter(enter: On<Enter<blockfsm::Tile>>, ...) { }
+fn on_tile_exit(exit: On<Exit<blockfsm::Tile>>, ...) { }
 ```
 
 ### FSMPlugin - Automatic Setup
@@ -160,8 +158,8 @@ Use the `fsm_observer!` macro to register variant-specific observers with automa
 ```rust
 use bevy_fsm::{fsm_observer, Enter};
 
-fn on_enter_loose(trigger: Trigger<Enter<blockfsm::Loose>>, mut commands: Commands) {
-    let entity = trigger.target();
+fn on_enter_loose(trigger: On<Enter<blockfsm::Loose>>, mut commands: Commands) {
+    let entity = trigger.event().entity;
     commands.entity(entity).insert(RigidBody::Dynamic);
 }
 
@@ -197,7 +195,7 @@ You can also observe generic events if you need runtime state checking:
 
 ```rust
 fn on_any_enter(
-    trigger: Trigger<Enter<BlockFSM>>,
+    trigger: On<Enter<BlockFSM>>,
     mut commands: Commands,
 ) {
     let state = trigger.event().state;
@@ -312,13 +310,18 @@ impl FSMTransition for AnimationState {
 
 ## Event Types
 
-Each FSM generates several event types:
+Each FSM generates several event types. All transition events implement `EntityEvent` and contain an `entity` field to identify the target entity:
 
-- `StateChangeRequest<S>`: Trigger to request a state change
-- `Enter<S>`: Generic enter event with `state` field
-- `Exit<S>`: Generic exit event with `state` field
-- `Transition<S, S>`: Generic transition event with `from` and `to` fields
+- `StateChangeRequest<S>`: Request to change an entity's state (contains `entity` and `next` fields)
+- `Enter<S>`: Generic enter event (contains `entity` and `state` fields)
+- `Exit<S>`: Generic exit event (contains `entity` and `state` fields)
+- `Transition<S, S>`: Generic transition event (contains `entity`, `from`, and `to` fields)
+
+The states themselves generate standard events. They are usually unit events without data.
+
 - `modulename::Variant`: Type-safe variant event types (used with `Enter<T>` and `Exit<T>` wrappers)
+
+In observer functions, access the entity via `trigger.event().entity`.
 
 ## How It Works
 
@@ -346,6 +349,43 @@ When an FSM component is first added:
 - **Use snake_case** when accessing generated modules (e.g., `Enter<lifefsm::Dying>`)
 - **Import Enter and Exit** from `bevy_fsm` when using variant-specific observers
 
+## Migration from Bevy 0.16 to 0.17
+
+1. **Observer parameter type**: Change `Trigger<Event>` to `On<Event>`
+
+   ```rust
+   // Old (Bevy 0.16):
+   fn my_observer(trigger: Trigger<Enter<MyState>>) { }
+
+   // New (Bevy 0.17):
+   fn my_observer(trigger: On<Enter<MyState>>) { }
+   ```
+
+2. **Accessing the target entity**: Change `trigger.target()` to `trigger.event().entity`
+
+   ```rust
+   // Old (Bevy 0.16):
+   let entity = trigger.target();
+
+   // New (Bevy 0.17):
+   let entity = trigger.event().entity;
+   ```
+
+3. **Triggering events**: Use `trigger()` instead of `trigger_targets()`, and include the entity in the event struct
+
+   ```rust
+   // Old (Bevy 0.16):
+   commands.trigger_targets(
+       StateChangeRequest { next: MyState::NewState },
+       entity
+   );
+
+   // New (Bevy 0.17):
+   commands.trigger(
+       StateChangeRequest { entity, next: MyState::NewState }
+   );
+   ```
+
 ## Important: Timing of Initial Enter Events
 
 **WARNING**: When an FSM component is added during entity spawn, the initial `Enter` event fires **in the same frame**, before the entity is fully initialized.
@@ -361,6 +401,7 @@ let entity = commands.spawn((
 ```
 
 When this spawn occurs:
+
 1. FSM component is added
 2. `on_fsm_added` observer fires **immediately**
 3. `Enter<life_fsm::Alive>` event is triggered
@@ -368,68 +409,8 @@ When this spawn occurs:
 5. Child entities are not spawned yet
 6. Asset handles may not be loaded
 
-### Safe Patterns
+**Consider using `ignore_fsm_addition()`** if you don't need initial Enter events:
 
-```rust
-// ✅ SAFE: Use Commands to queue operations
-fn on_alive_enter(
-    trigger: Trigger<Enter<life_fsm::Alive>>,
-    mut commands: Commands,
-) {
-    let entity = trigger.target();
-
-    // Queue component insertion - executes after spawn completes
-    commands.entity(entity).insert(HealthBar::default());
-}
-
-// ❌ UNSAFE: Querying other components may panic
-fn on_alive_enter_unsafe(
-    trigger: Trigger<Enter<life_fsm::Alive>>,
-    query: Query<&Health>,
-) {
-    let entity = trigger.target();
-
-    // May panic! Health component might not exist yet
-    let health = query.get(entity).unwrap();
-}
-
-// ✅ SAFE: Use with_children for child spawning
-fn on_alive_enter_with_children(
-    trigger: Trigger<Enter<life_fsm::Alive>>,
-    mut commands: Commands,
-) {
-    commands.entity(trigger.target()).with_children(|parent| {
-        parent.spawn(HealthBarBundle::default());
-    });
-}
-```
-
-### Workarounds
-
-If you need to access other components on initial spawn:
-
-1. **Use a separate initialization system** that runs after spawn:
-   ```rust
-   fn initialize_alive_entities(
-       query: Query<(Entity, &Health), Added<LifeFSM>>,
-       mut commands: Commands,
-   ) {
-       for (entity, health) in query.iter() {
-           // Safe: entity is fully initialized
-           commands.entity(entity).insert(HealthBar::new(health.current));
-       }
-   }
-   ```
-
-2. **Use Commands for deferred operations**:
-   ```rust
-   fn on_alive_enter(trigger: Trigger<Enter<life_fsm::Alive>>, mut commands: Commands) {
-       // Commands execute after the current stage completes
-       commands.entity(trigger.target()).insert(ReadyToPlay);
-   }
-   ```
-
-3. **Consider using `ignore_fsm_addition()`** if you don't need initial Enter events:
    ```rust
    app.add_plugins(FSMPlugin::<LifeFSM>::new().ignore_fsm_addition());
    ```
@@ -453,9 +434,8 @@ fn test_state_transition() {
     app.update(); // Triggers on_fsm_added
 
     // Request transition
-    app.world_mut().commands().trigger_targets(
-        StateChangeRequest::<LifeFSM> { next: LifeFSM::Dying },
-        entity,
+    app.world_mut().commands().trigger(
+        StateChangeRequest::<LifeFSM> { entity, next: LifeFSM::Dying },
     );
     app.update();
 
@@ -466,7 +446,7 @@ fn test_state_transition() {
 
 ## Module Structure
 
-```
+```markdown
 bevy_fsm/
 ├── src/lib.rs           # Core traits and observer functions
 ├── Cargo.toml
@@ -480,12 +460,18 @@ bevy_enum_event/        # Separate crate (dependency)
 
 **Note**: `bevy_fsm` depends on `bevy_enum_event` with the `fsm` feature enabled.
 
+## AI Disclaimer
+
+- Refactoring and documentation supported by Claude Code
+- Minor editing supported by ChatGPT Codex
+- The process and final releases are thoroughly supervised and checked by the author
+
 ## License
 
 Licensed under either of:
 
-- Apache License, Version 2.0 ([LICENSE-APACHE](LICENSE-APACHE) or http://www.apache.org/licenses/LICENSE-2.0)
-- MIT License ([LICENSE-MIT](LICENSE-MIT) or http://opensource.org/licenses/MIT)
+- Apache License, Version 2.0 ([LICENSE-APACHE](LICENSE-APACHE) or <http://www.apache.org/licenses/LICENSE-2.0>)
+- MIT License ([LICENSE-MIT](LICENSE-MIT) or <http://opensource.org/licenses/MIT>)
 
 at your option.
 

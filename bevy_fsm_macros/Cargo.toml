@@ -9,6 +9,9 @@ authors.workspace = true
 keywords = ["bevy", "fsm", "macros"]
 categories = ["game-development"]
 
+[package.metadata.docs.rs]
+all-features = true
+
 [lib]
 proc-macro = true
 
@@ -16,4 +19,6 @@ proc-macro = true
 syn.workspace = true
 quote.workspace = true
 proc-macro2.workspace = true
+
+[dev-dependencies]
 bevy_enum_event.workspace = true
