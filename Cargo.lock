@@ -191,7 +191,7 @@ dependencies = [
 
 [[package]]
 name = "bevy_fsm"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "bevy",
  "bevy_enum_event",
@@ -200,7 +200,7 @@ dependencies = [
 
 [[package]]
 name = "bevy_fsm_macros"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "bevy_enum_event",
  "proc-macro2",

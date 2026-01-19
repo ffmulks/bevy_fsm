@@ -57,8 +57,8 @@ impl FSMTransition for LifeFSM {
 
 | Bevy  | bevy_fsm_macros |
 |-------|-----------------|
-| 0.17  | main            |
-| 0.16  | 0.1.0           |
+| 0.17  | 0.2             |
+| 0.16  | 0.1             |
 
 ## Documentation
 

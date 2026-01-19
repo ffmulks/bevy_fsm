@@ -6,8 +6,8 @@ Observer-driven finite state machine framework for Bevy ECS.
 
 |  Bevy   | bevy_fsm |
 |---------|----------|
-| 0.17    | main     |
-| 0.16    | 0.1.0    |
+| 0.17    | 0.2      |
+| 0.16    | 0.1      |
 
 ## Features
 
@@ -406,8 +406,7 @@ When this spawn occurs:
 2. `on_fsm_added` observer fires **immediately**
 3. `Enter<life_fsm::Alive>` event is triggered
 4. **Other components may not exist yet!**
-5. Child entities are not spawned yet
-6. Asset handles may not be loaded
+5. Asset handles may not be loaded
 
 **Consider using `ignore_fsm_addition()`** if you don't need initial Enter events:
 
