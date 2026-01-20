@@ -5,28 +5,41 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.3.0] - 2025-01-20
+
+### Changed
+
+- **BREAKING**: Migrated to Bevy 0.18
+- **BREAKING**: `EntityEvent::event_target_mut` removed (moved to `SetEntityEventTarget` trait in Bevy 0.18)
+- **BREAKING**: Use `trigger.event_target()` instead of `trigger.target()` to access entity in observers
+- Updated all documentation examples to use Bevy 0.18 patterns
+- Observer entities no longer marked as `Internal` (component removed in Bevy 0.18)
+
+### Fixed
+
+- Tests updated to work without `Internal` component filtering
+
+## [0.2.0] - 2025-10-01
 
 ### Changed
 
 - **BREAKING**: Migrated to Bevy 0.17
-- **BREAKING**: Updated observer triggers to use `On<Event>` instead of `Trigger<Event>` (Bevy 0.17 observer API change)
-- **BREAKING**: Replaced deprecated `trigger_targets` with `trigger` - events now embed entity information directly
-- Updated hierarchy API to use Bevy 0.17's new parent-child relationship system
-- Observer entities are now marked as `Internal` and filtered from normal queries by default
-- Tests now use `query_filtered::<EntityRef, Allow<Internal>>()` to include observer entities in hierarchy checks
+- **BREAKING**: Observer triggers now use `On<Event>` instead of `Trigger<Event>`
+- **BREAKING**: Events now embed entity field, use `trigger()` not `trigger_targets()`
+- Updated hierarchy API for Bevy 0.17
+- Observer entities marked as `Internal`
+- Tests updated for internal entity filtering
 
-### Fixed
+## [0.1.0] - 2025-09-15
 
-- Fixed test `fsm_observer_macro_registers_and_organizes` to work with Bevy 0.17's internal entity filtering
-- Updated deprecated `iter_entities()` usage to use recommended `query::<EntityRef>()` pattern
+### Added
 
-### Documentation
-
-- Updated README to clarify that all events (`Enter`, `Exit`, `Transition`, `StateChangeRequest`) include an `entity` field
-- Updated README testing example to use `trigger` instead of deprecated `trigger_targets`
-- Added note explaining `EntityEvent` implementation and `trigger.target()` usage
-
-## [0.1.0] - Previous Release
-
-Initial release with Bevy 0.16 support.
+- Initial release for Bevy 0.16
+- Observer-driven FSM framework
+- `FSMState` and `FSMTransition` derive macros
+- `FSMPlugin` for automatic observer setup
+- `fsm_observer!` macro for hierarchy organization
+- `FSMOverride` component for per-entity transition rules
+- Enter, Exit, and Transition events
+- Variant-specific event types via `EnumEvent`
+- Context-aware transition validation with world access
