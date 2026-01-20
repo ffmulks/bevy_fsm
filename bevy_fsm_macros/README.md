@@ -55,10 +55,11 @@ impl FSMTransition for LifeFSM {
 
 ## Bevy Compatibility
 
-| Bevy  | bevy_fsm_macros |
-|-------|-----------------|
-| 0.17  | 0.2             |
-| 0.16  | 0.1             |
+| Bevy | bevy_fsm_macros |
+|------|-----------------|
+| 0.18 | 0.3             |
+| 0.17 | 0.2             |
+| 0.16 | 0.1             |
 
 ## Documentation
 

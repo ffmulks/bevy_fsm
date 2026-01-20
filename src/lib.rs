@@ -54,21 +54,21 @@
 //! #[derive(Component)]
 //! struct DyingAnimation;
 //!
-//! fn on_enter_dying(trigger: Trigger<Enter<life_fsm::Dying>>, mut commands: Commands) {
-//!     let entity = trigger.target();
+//! fn on_enter_dying(trigger: On<Enter<life_fsm::Dying>>, mut commands: Commands) {
+//!     let entity = trigger.event_target();
 //!     commands.entity(entity).insert(DyingAnimation);
 //! }
 //!
-//! fn on_exit_alive(trigger: Trigger<Enter<life_fsm::Alive>>) {
-//!     let entity = trigger.target();
+//! fn on_exit_alive(trigger: On<Exit<life_fsm::Alive>>) {
+//!     let entity = trigger.event_target();
 //!     println!("Entity {} was unalived.", entity);
 //! }
 //!
 //! fn on_transition_dying_dead(
-//!     trigger: Trigger<Transition<life_fsm::Dying, life_fsm::Dead>>,
+//!     trigger: On<Transition<life_fsm::Dying, life_fsm::Dead>>,
 //!     mut commands: Commands
 //! ) {
-//!     let entity = trigger.target();
+//!     let entity = trigger.event_target();
 //!     commands.entity(entity).despawn()
 //! }
 //! ```
@@ -171,7 +171,7 @@ use std::any::TypeId;
 /// # use bevy_enum_event::EnumEvent;
 /// # #[derive(Component, EnumEvent, FSMTransition, FSMState, Reflect, Clone, Copy, Debug, PartialEq, Eq, Hash)]
 /// # enum LifeFSM { Alive, Dying }
-/// # fn on_dying_observer(_: Trigger<Enter<life_fsm::Dying>>) {}
+/// # fn on_dying_observer(_: On<Enter<life_fsm::Dying>>) {}
 /// # let mut app = App::new();
 /// fsm_observer!(app, LifeFSM, on_dying_observer);
 /// ```
@@ -239,10 +239,6 @@ impl<S: Copy + Send + Sync + 'static> EntityEvent for StateChangeRequest<S> {
     fn event_target(&self) -> Entity {
         self.entity
     }
-
-    fn event_target_mut(&mut self) -> &mut Entity {
-        &mut self.entity
-    }
 }
 
 /// Event fired when an entity exits a state.
@@ -256,10 +252,6 @@ impl<S: Copy + Send + Sync + 'static> EntityEvent for Exit<S> {
     fn event_target(&self) -> Entity {
         self.entity
     }
-
-    fn event_target_mut(&mut self) -> &mut Entity {
-        &mut self.entity
-    }
 }
 
 /// Event fired when an entity enters a state.
@@ -272,10 +264,6 @@ pub struct Enter<S: Copy + Send + Sync + 'static> {
 impl<S: Copy + Send + Sync + 'static> EntityEvent for Enter<S> {
     fn event_target(&self) -> Entity {
         self.entity
-    }
-
-    fn event_target_mut(&mut self) -> &mut Entity {
-        &mut self.entity
     }
 }
 
@@ -298,10 +286,6 @@ where
 {
     fn event_target(&self) -> Entity {
         self.entity
-    }
-
-    fn event_target_mut(&mut self) -> &mut Entity {
-        &mut self.entity
     }
 }
 
@@ -723,10 +707,10 @@ where
 /// #     fn can_transition(_: Self, _: Self) -> bool { true }
 /// # }
 /// fn on_alive_enter(
-///     trigger: Trigger<Enter<LifeFSM>>,
+///     trigger: On<Enter<LifeFSM>>,
 ///     mut commands: Commands,
 /// ) {
-///     let entity = trigger.target();
+///     let entity = trigger.event_target();
 ///
 ///     // SAFE: Queue command for later execution
 ///     commands.entity(entity).insert(HealthBar::default());
@@ -888,7 +872,7 @@ pub fn apply_state_request<S: FSMState + core::hash::Hash>(
 /// # use bevy_enum_event::{EnumEvent};
 /// # #[derive(Component, EnumEvent, FSMTransition, FSMState, Reflect, Clone, Copy, Debug, PartialEq, Eq, Hash)]
 /// # enum LifeFSM { Alive, Dying }
-/// # fn on_dying_observer(_: Trigger<Enter<life_fsm::Dying>>) {}
+/// # fn on_dying_observer(_: On<Enter<life_fsm::Dying>>) {}
 /// # let mut app = App::new();
 /// app.add_plugins(FSMPlugin::<LifeFSM>::default());
 ///
@@ -1034,8 +1018,6 @@ where
 
 #[cfg(test)]
 mod tests {
-    use bevy::ecs::entity_disabling::Internal;
-
     use super::*;
 
     #[derive(Component, Clone, Copy, Debug, Hash, PartialEq, Eq)]
@@ -1358,70 +1340,45 @@ mod tests {
             }
         }
 
-        println!("\n--- Checking hierarchy relationships (ChildOf) with Allow<Internal> ---");
+        println!("\n--- Checking hierarchy relationships (ChildOf) ---");
         let mut group_is_child = false;
         let mut observer_is_child = false;
         {
-            println!("Checking all entities with ChildOf component (including observers):");
+            println!("Checking all entities with ChildOf component:");
             let mut child_count = 0;
-            let mut query = app
-                .world_mut()
-                .query_filtered::<EntityRef, Allow<Internal>>();
-            for entity in query.iter(app.world()) {
-                if let Some(child_of) = entity.get::<ChildOf>() {
-                    child_count += 1;
-                    let entity_id = entity.id();
-                    let name_str = entity
-                        .get::<Name>()
-                        .map(|n| n.as_str())
-                        .unwrap_or("<no name>");
-                    println!(
-                        "  - Entity {:?}, Name: '{}', Parent: {:?}",
-                        entity_id,
-                        name_str,
-                        child_of.parent()
-                    );
-                    if child_of.parent() == root && name_str == "TestState" {
-                        println!("    ✓ MATCH: This is the TestState group as child of root");
-                        group_is_child = true;
-                    }
-                    if child_of.parent() == group && name_str == "on_enter" {
-                        println!("    ✓ MATCH: This is the on_enter observer as child of group");
-                        observer_is_child = true;
-                    }
+            let mut query = app.world_mut().query::<(Entity, &ChildOf, Option<&Name>)>();
+            for (entity_id, child_of, name) in query.iter(app.world()) {
+                child_count += 1;
+                let name_str = name.map(|n| n.as_str()).unwrap_or("<no name>");
+                println!(
+                    "  - Entity {:?}, Name: '{}', Parent: {:?}",
+                    entity_id,
+                    name_str,
+                    child_of.parent()
+                );
+                if child_of.parent() == root && name_str == "TestState" {
+                    println!("    ✓ MATCH: This is the TestState group as child of root");
+                    group_is_child = true;
+                }
+                if child_of.parent() == group && name_str == "on_enter" {
+                    println!("    ✓ MATCH: This is the on_enter observer as child of group");
+                    observer_is_child = true;
                 }
             }
             println!("Found {} entities with ChildOf component", child_count);
         }
 
-        println!("\n--- ALL ENTITIES IN WORLD (including Internal) ---");
+        println!("\n--- ALL ENTITIES IN WORLD ---");
         {
             let mut count = 0;
-            let mut query = app
-                .world_mut()
-                .query_filtered::<EntityRef, Allow<Internal>>();
-            for entity in query.iter(app.world()) {
+            let mut query = app.world_mut().query::<(Entity, Option<&Name>)>();
+            for (entity_id, name) in query.iter(app.world()) {
                 count += 1;
-                print!("  - Entity {:?}", entity.id());
-
-                // Try to get Name component
-                if let Some(name) = entity.get::<Name>() {
+                print!("  - Entity {:?}", entity_id);
+                if let Some(name) = name {
                     print!(", Name: '{}'", name.as_str());
                 }
-
-                // List all components
-                print!(" [Components: ");
-                let mut first = true;
-                for component_id in entity.archetype().components() {
-                    if let Some(info) = app.world().components().get_info(*component_id) {
-                        if !first {
-                            print!(", ");
-                        }
-                        print!("{}", info.name());
-                        first = false;
-                    }
-                }
-                println!("]");
+                println!();
             }
             println!("  Total entities: {}", count);
         }
