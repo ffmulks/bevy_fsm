@@ -186,9 +186,9 @@ dependencies = [
 
 [[package]]
 name = "bevy_enum_event"
-version = "0.2.0"
+version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b3ede6950407979dcde8c98a9c1159a40b8c81eb20c6286ab867ec6c4aaeb528"
+checksum = "728d650fb0ebf8b470c78653aa9c4ae7bd1398a8c850d198f6a802c33241ce35"
 dependencies = [
  "proc-macro2",
  "quote",
