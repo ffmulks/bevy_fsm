@@ -98,12 +98,10 @@ fn trigger_transitions(
         if *elapsed >= 1.0 && !*triggered_10 {
             *triggered_10 = true;
             println!("\n--- Triggering transition: {} Alive -> Dying ---", name);
-            commands.trigger(
-                StateChangeRequest {
-                    entity,
-                    next: LifeFSM::Dying,
-                },
-            );
+            commands.trigger(StateChangeRequest {
+                entity,
+                next: LifeFSM::Dying,
+            });
         }
 
         // At ~2 seconds: Dying -> Alive (resurrection)
@@ -113,36 +111,30 @@ fn trigger_transitions(
                 "\n--- Triggering transition: {} Dying -> Alive (Resurrection!) ---",
                 name
             );
-            commands.trigger(
-                StateChangeRequest {
-                    entity,
-                    next: LifeFSM::Alive,
-                },
-            );
+            commands.trigger(StateChangeRequest {
+                entity,
+                next: LifeFSM::Alive,
+            });
         }
 
         // At ~3 seconds: Alive -> Dying again
         if *elapsed >= 3.0 && !*triggered_30 && state == LifeFSM::Alive {
             *triggered_30 = true;
             println!("\n--- Triggering transition: {} Alive -> Dying ---", name);
-            commands.trigger(
-                StateChangeRequest {
-                    entity,
-                    next: LifeFSM::Dying,
-                },
-            );
+            commands.trigger(StateChangeRequest {
+                entity,
+                next: LifeFSM::Dying,
+            });
         }
 
         // At ~4 seconds: Dying -> Dead
         if *elapsed >= 4.0 && !*triggered_40 && state == LifeFSM::Dying {
             *triggered_40 = true;
             println!("\n--- Triggering transition: {} Dying -> Dead ---", name);
-            commands.trigger(
-                StateChangeRequest {
-                    entity,
-                    next: LifeFSM::Dead,
-                },
-            );
+            commands.trigger(StateChangeRequest {
+                entity,
+                next: LifeFSM::Dead,
+            });
         }
 
         // At ~5 seconds: Exit

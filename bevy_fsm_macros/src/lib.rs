@@ -108,7 +108,10 @@ pub fn derive_fsm_transition(input: TokenStream) -> TokenStream {
     let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
 
     // Verify it's an enum (though not strictly necessary for FSMTransition)
-    assert!(matches!(&input.data, Data::Enum(_)), "FSMTransition can only be derived for enums");
+    assert!(
+        matches!(&input.data, Data::Enum(_)),
+        "FSMTransition can only be derived for enums"
+    );
 
     let expanded = quote! {
         impl #impl_generics bevy_fsm::FSMTransition for #enum_name #ty_generics #where_clause {
@@ -216,7 +219,11 @@ pub fn derive_fsm_state(input: TokenStream) -> TokenStream {
 
     // Verify all variants are unit variants
     for variant in variants {
-        assert!(matches!(variant.fields, Fields::Unit), "FSMState enum variants must be unit variants (no fields). Variant '{}' has fields.", variant.ident);
+        assert!(
+            matches!(variant.fields, Fields::Unit),
+            "FSMState enum variants must be unit variants (no fields). Variant '{}' has fields.",
+            variant.ident
+        );
     }
 
     let variant_idents: Vec<_> = variants.iter().map(|v| &v.ident).collect();

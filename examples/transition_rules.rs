@@ -15,7 +15,9 @@
 //! Run with: `cargo run --example transition_rules`
 
 use bevy::prelude::*;
-use bevy_fsm::{EnumEvent, FSMState, FSMTransition, fsm_observer, Enter, FSMPlugin, StateChangeRequest};
+use bevy_fsm::{
+    fsm_observer, Enter, EnumEvent, FSMPlugin, FSMState, FSMTransition, StateChangeRequest,
+};
 
 fn main() {
     let mut app = App::new();
@@ -109,7 +111,10 @@ fn drive_state_transitions(
                 "  {}xpecting transition",
                 if allowed { "E" } else { "NOT e" }
             );
-            commands.trigger(StateChangeRequest { entity, next: target });
+            commands.trigger(StateChangeRequest {
+                entity,
+                next: target,
+            });
         }
     }
 }
