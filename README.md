@@ -56,21 +56,18 @@ impl FSMTransition for LifeFSM {
 struct DyingAnimation;
 
 fn on_enter_dying(trigger: On<Enter<life_fsm::Dying>>, mut commands: Commands) {
-    let entity = trigger.event_target();
-    commands.entity(entity).insert(DyingAnimation);
+    commands.entity(trigger.entity).insert(DyingAnimation);
 }
 
 fn on_exit_alive(trigger: On<Exit<life_fsm::Alive>>) {
-    let entity = trigger.event_target();
-    println!("Entity {} was unalived.", entity);
+    println!("Entity {} was unalived.", trigger.entity);
 }
 
 fn on_transition_dying_dead(
     trigger: On<Transition<life_fsm::Dying, life_fsm::Alive>>,
     mut commands: Commands
 ) {
-    let entity = trigger.event_target();
-    println!("Entity {} was saved from the brink of death.", entity);
+    println!("Entity {} was saved from the brink of death.", trigger.entity);
 }
 ```
 
@@ -100,25 +97,27 @@ impl FSMTransition for MyFSM {
 
 ### EnumEvent and FSMState Derives
 
-**bevy_fsm** uses two derive macros from `bevy_enum_event`:
+Use these derive macros to generate variant-specific events:
 
-1. **`#[derive(EnumEvent)]`** - Generates variant-specific event types
-2. **`#[derive(FSMState)]`** - Implements FSM-specific trigger methods
+- **`#[derive(EnumEvent)]`** - Generates variant-specific event types
+- **`#[derive(FSMState)]`** - Implements FSM-specific trigger methods
 
 ```rust
-use bevy_enum_event::{EnumEvent, FSMState};
+use bevy::prelude::*;
+use bevy_fsm::{EnumEvent, FSMState, FSMTransition, Enter, Exit};
 
-#[derive(Component, EnumEvent, FSMState, Clone, Copy, Debug, PartialEq, Eq, Hash)]
+#[derive(Component, EnumEvent, FSMTransition, FSMState, Clone, Copy, Debug, PartialEq, Eq, Hash)]
 enum BlockFSM {
     Tile,
     Loose,
     Disabled
 }
 
-impl FSMState for BlockFSM {}
+// FSMTransition derive provides "allow all" behavior
+// For custom rules, skip the derive and implement manually
 
-fn on_tile_enter(enter: On<Enter<blockfsm::Tile>>, ...) { }
-fn on_tile_exit(exit: On<Exit<blockfsm::Tile>>, ...) { }
+fn on_tile_enter(enter: On<Enter<block_fsm::Tile>>, /* ... */) { }
+fn on_tile_exit(exit: On<Exit<block_fsm::Tile>>, /* ... */) { }
 ```
 
 ### FSMPlugin - Automatic Setup
@@ -141,9 +140,8 @@ Register variant-specific observers with automatic hierarchy organization:
 ```rust
 use bevy_fsm::{fsm_observer, Enter};
 
-fn on_enter_loose(trigger: On<Enter<blockfsm::Loose>>, mut commands: Commands) {
-    let entity = trigger.event_target();
-    commands.entity(entity).insert(RigidBody::Dynamic);
+fn on_enter_loose(trigger: On<Enter<block_fsm::Loose>>, mut commands: Commands) {
+    commands.entity(trigger.entity).insert(RigidBody::Dynamic);
 }
 
 fn plugin(app: &mut App) {
@@ -253,7 +251,7 @@ All transition events implement `EntityEvent` and contain an `entity` field:
 - `Exit<S>`: Exit event (`entity`, `state`)
 - `Transition<S, S>`: Transition event (`entity`, `from`, `to`)
 
-Access the entity via `trigger.event_target()`.
+Access the entity via `trigger.entity` (using Deref).
 
 ## How It Works
 
