@@ -100,25 +100,27 @@ impl FSMTransition for MyFSM {
 
 ### EnumEvent and FSMState Derives
 
-**bevy_fsm** uses two derive macros from `bevy_enum_event`:
+Use these derive macros to generate variant-specific events:
 
-1. **`#[derive(EnumEvent)]`** - Generates variant-specific event types
-2. **`#[derive(FSMState)]`** - Implements FSM-specific trigger methods
+- **`#[derive(EnumEvent)]`** - Generates variant-specific event types
+- **`#[derive(FSMState)]`** - Implements FSM-specific trigger methods
 
 ```rust
-use bevy_enum_event::{EnumEvent, FSMState};
+use bevy::prelude::*;
+use bevy_fsm::{EnumEvent, FSMState, FSMTransition, Enter, Exit};
 
-#[derive(Component, EnumEvent, FSMState, Clone, Copy, Debug, PartialEq, Eq, Hash)]
+#[derive(Component, EnumEvent, FSMTransition, FSMState, Clone, Copy, Debug, PartialEq, Eq, Hash)]
 enum BlockFSM {
     Tile,
     Loose,
     Disabled
 }
 
-impl FSMState for BlockFSM {}
+// FSMTransition derive provides "allow all" behavior
+// For custom rules, skip the derive and implement manually
 
-fn on_tile_enter(enter: On<Enter<blockfsm::Tile>>, ...) { }
-fn on_tile_exit(exit: On<Exit<blockfsm::Tile>>, ...) { }
+fn on_tile_enter(enter: On<Enter<block_fsm::Tile>>, /* ... */) { }
+fn on_tile_exit(exit: On<Exit<block_fsm::Tile>>, /* ... */) { }
 ```
 
 ### FSMPlugin - Automatic Setup
