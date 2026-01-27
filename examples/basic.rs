@@ -148,7 +148,7 @@ fn trigger_transitions(
 
 /// Observer: Fires when entering the Dying state
 fn on_enter_dying(trigger: On<Enter<life_fsm::Dying>>, mut commands: Commands) {
-    let entity = trigger.event().entity;
+    let entity = trigger.entity;
     println!("  [ENTER Dying] Entity {:?} is now dying!", entity);
 
     // Add a DyingAnimation component when entering Dying state
@@ -159,7 +159,7 @@ fn on_enter_dying(trigger: On<Enter<life_fsm::Dying>>, mut commands: Commands) {
 
 /// Observer: Fires when exiting the Alive state
 fn on_exit_alive(trigger: On<Exit<life_fsm::Alive>>, query: Query<&Name>) {
-    let entity = trigger.event().entity;
+    let entity = trigger.entity;
     let name = query.get(entity).map(|n| n.as_str()).unwrap_or("Unknown");
     println!(
         "  [EXIT Alive] Entity {} ({:?}) is no longer alive!",
@@ -173,7 +173,7 @@ fn on_transition_dying_dead(
     mut commands: Commands,
     query: Query<&Name>,
 ) {
-    let entity = trigger.event().entity;
+    let entity = trigger.entity;
     let name = query.get(entity).map(|n| n.as_str()).unwrap_or("Unknown");
     println!(
         "  [TRANSITION Dying -> Dead] {} ({:?}) has died. Removing DyingAnimation...",
@@ -190,7 +190,7 @@ fn on_transition_dying_alive(
     mut commands: Commands,
     query: Query<&Name>,
 ) {
-    let entity = trigger.event().entity;
+    let entity = trigger.entity;
     let name = query.get(entity).map(|n| n.as_str()).unwrap_or("Unknown");
     println!(
         "  [TRANSITION Dying -> Alive] {} ({:?}) has been resurrected!",

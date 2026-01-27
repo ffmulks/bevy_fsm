@@ -55,21 +55,18 @@
 //! struct DyingAnimation;
 //!
 //! fn on_enter_dying(trigger: On<Enter<life_fsm::Dying>>, mut commands: Commands) {
-//!     let entity = trigger.event_target();
-//!     commands.entity(entity).insert(DyingAnimation);
+//!     commands.entity(trigger.entity).insert(DyingAnimation);
 //! }
 //!
 //! fn on_exit_alive(trigger: On<Exit<life_fsm::Alive>>) {
-//!     let entity = trigger.event_target();
-//!     println!("Entity {} was unalived.", entity);
+//!     println!("Entity {} was unalived.", trigger.entity);
 //! }
 //!
 //! fn on_transition_dying_dead(
 //!     trigger: On<Transition<life_fsm::Dying, life_fsm::Dead>>,
 //!     mut commands: Commands
 //! ) {
-//!     let entity = trigger.event_target();
-//!     commands.entity(entity).despawn()
+//!     commands.entity(trigger.entity).despawn()
 //! }
 //! ```
 //!
@@ -710,13 +707,11 @@ where
 ///     trigger: On<Enter<LifeFSM>>,
 ///     mut commands: Commands,
 /// ) {
-///     let entity = trigger.event_target();
-///
 ///     // SAFE: Queue command for later execution
-///     commands.entity(entity).insert(HealthBar::default());
+///     commands.entity(trigger.entity).insert(HealthBar::default());
 ///
 ///     // UNSAFE: Don't query other components - they may not exist yet!
-///     // let health = query.get(entity).unwrap(); // May panic!
+///     // let health = query.get(trigger.entity).unwrap(); // May panic!
 /// }
 /// ```
 ///

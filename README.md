@@ -56,21 +56,18 @@ impl FSMTransition for LifeFSM {
 struct DyingAnimation;
 
 fn on_enter_dying(trigger: On<Enter<life_fsm::Dying>>, mut commands: Commands) {
-    let entity = trigger.event_target();
-    commands.entity(entity).insert(DyingAnimation);
+    commands.entity(trigger.entity).insert(DyingAnimation);
 }
 
 fn on_exit_alive(trigger: On<Exit<life_fsm::Alive>>) {
-    let entity = trigger.event_target();
-    println!("Entity {} was unalived.", entity);
+    println!("Entity {} was unalived.", trigger.entity);
 }
 
 fn on_transition_dying_dead(
     trigger: On<Transition<life_fsm::Dying, life_fsm::Alive>>,
     mut commands: Commands
 ) {
-    let entity = trigger.event_target();
-    println!("Entity {} was saved from the brink of death.", entity);
+    println!("Entity {} was saved from the brink of death.", trigger.entity);
 }
 ```
 
@@ -143,9 +140,8 @@ Register variant-specific observers with automatic hierarchy organization:
 ```rust
 use bevy_fsm::{fsm_observer, Enter};
 
-fn on_enter_loose(trigger: On<Enter<blockfsm::Loose>>, mut commands: Commands) {
-    let entity = trigger.event_target();
-    commands.entity(entity).insert(RigidBody::Dynamic);
+fn on_enter_loose(trigger: On<Enter<block_fsm::Loose>>, mut commands: Commands) {
+    commands.entity(trigger.entity).insert(RigidBody::Dynamic);
 }
 
 fn plugin(app: &mut App) {
@@ -255,7 +251,7 @@ All transition events implement `EntityEvent` and contain an `entity` field:
 - `Exit<S>`: Exit event (`entity`, `state`)
 - `Transition<S, S>`: Transition event (`entity`, `from`, `to`)
 
-Access the entity via `trigger.event_target()`.
+Access the entity via `trigger.entity` (using Deref).
 
 ## How It Works
 
